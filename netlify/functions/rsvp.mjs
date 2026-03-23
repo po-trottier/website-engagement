@@ -87,14 +87,14 @@ export default async (req) => {
         const lines = [
           `Name: ${name}`,
           `Status: ${status}`,
-          attending && plusOnes > 0 ? `Plus ones: ${plusOnes}` : null,
+          attending && plusOnes > 0 ? `+1s: ${plusOnes}` : null,
           email ? `Email: ${email}` : null,
           phone ? `Phone: ${phone}` : null,
         ].filter(Boolean);
         await transporter.sendMail({
           from: smtpUser,
           to: Netlify.env.get("NOTIFICATION_EMAIL") || smtpUser,
-          subject: `RSVP: ${name} — ${status}`,
+          subject: `Engagement Party RSVP: ${name} — ${status}`,
           text: lines.join("\n"),
         });
       } catch {
