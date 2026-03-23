@@ -1,5 +1,7 @@
 # P-O & Athena's Engagement Party
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/5c1ee429-baeb-42ec-951c-22d12265a299/deploy-status)](https://app.netlify.com/projects/website-engagement/deploys)
+
 A lightweight engagement party RSVP website. No framework, no database, no build step.
 
 Guests can view event details, read the couple's story, RSVP with contact info and +1 count, and add the event to their calendar. Hosts manage RSVPs through a password-protected admin dashboard with inline editing, batch actions, and CSV export.
