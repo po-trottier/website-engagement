@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import nodemailer from "nodemailer";
 
 const MAX_LENGTH = 200;
 const RSVP_DEADLINE = new Date("2026-06-02T00:00:00-07:00");
@@ -68,6 +69,36 @@ export default async (req) => {
         break;
       } catch {
         if (attempt === 2) throw new Error("Failed to update index");
+      }
+    }
+
+    // Send email notification (non-blocking)
+    const smtpUser = Netlify.env.get("SMTP_USER");
+    const smtpPass = Netlify.env.get("SMTP_PASS");
+    if (smtpUser && smtpPass) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: "smtp.gmail.com",
+          port: 465,
+          secure: true,
+          auth: { user: smtpUser, pass: smtpPass },
+        });
+        const status = attending ? "Attending" : "Declined";
+        const lines = [
+          `Name: ${name}`,
+          `Status: ${status}`,
+          attending && plusOnes > 0 ? `Plus ones: ${plusOnes}` : null,
+          email ? `Email: ${email}` : null,
+          phone ? `Phone: ${phone}` : null,
+        ].filter(Boolean);
+        await transporter.sendMail({
+          from: smtpUser,
+          to: Netlify.env.get("NOTIFICATION_EMAIL") || smtpUser,
+          subject: `RSVP: ${name} — ${status}`,
+          text: lines.join("\n"),
+        });
+      } catch {
+        // Email failure should not block the RSVP response
       }
     }
 

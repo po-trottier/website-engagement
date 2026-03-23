@@ -237,21 +237,6 @@
       const result = await res.json();
 
       if (res.ok && result.success) {
-        // Submit to hidden Netlify Form for email notification
-        const formData = new URLSearchParams({
-          "form-name": "rsvp-notifications",
-          name: data.name,
-          attending: data.attending ? "Yes" : "No",
-          plusOnes: String(data.plusOnes),
-          email: data.email,
-          phone: data.phone,
-        });
-        fetch("/", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formData.toString(),
-        }).catch(function () {}); // notification failure is non-blocking
-
         const msg = data.attending
           ? "Thank you! We can't wait to celebrate with you!"
           : "We're sorry you can't make it. Thank you for letting us know!";

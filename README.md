@@ -11,10 +11,10 @@ Guests can view event details, read the couple's story, RSVP with contact info a
 - **Frontend**: Plain HTML / CSS / JS (no framework, no build step)
 - **Backend**: Netlify Functions (serverless)
 - **Storage**: Netlify Blobs (key-value store)
-- **Email Notifications**: Netlify Forms (built-in)
+- **Email Notifications**: Gmail SMTP via Nodemailer
 - **Hosting**: Netlify (static site)
 
-**1 npm dependency**: `@netlify/blobs`
+**2 npm dependencies**: `@netlify/blobs`, `nodemailer`
 
 ## Project Structure
 
@@ -30,7 +30,7 @@ public/                     Static site (served by Netlify)
   event.ics                 Calendar event file for Apple Calendar download
 
 netlify/functions/          Serverless functions
-  rsvp.mjs                  POST: validate + save RSVP to Blobs
+  rsvp.mjs                  POST: validate + save RSVP to Blobs + email notification
   admin.mjs                 POST: list / create / update / delete (auth required)
 
 netlify.toml                Netlify config
@@ -58,12 +58,16 @@ Create a `.env` file in the root:
 ```
 ADMIN_PASSWORD=your-secret-password
 NOTIFICATION_EMAIL=your@email.com
+SMTP_USER=your@gmail.com
+SMTP_PASS=your-gmail-app-password
 ```
 
 | Variable | Purpose |
 |----------|---------|
-| `ADMIN_PASSWORD` | Password for the `/admin` dashboard |
-| `NOTIFICATION_EMAIL` | Admin email used in the mailto: link for batch emails |
+| `ADMIN_PASSWORD` | Password for the `/admin` dashboard (min 8 chars, not "changeme") |
+| `NOTIFICATION_EMAIL` | Recipient email for RSVP notifications and admin mailto: link |
+| `SMTP_USER` | Gmail address used to send notification emails |
+| `SMTP_PASS` | Gmail App Password ([create one here](https://myaccount.google.com/apppasswords)) |
 
 ### Local Development
 
@@ -113,17 +117,18 @@ Accessible at `/admin`. Password-protected (uses `ADMIN_PASSWORD` env var).
 | **Static hosting** | Serves `public/` directory |
 | **Functions** | `rsvp.mjs` and `admin.mjs` serverless endpoints |
 | **Blobs** | Key-value storage for RSVP data (store: `rsvps`) |
-| **Forms** | Hidden form with `data-netlify="true"` for email notifications |
 | **404 handling** | Custom `404.html` served automatically |
-| **Environment variables** | `ADMIN_PASSWORD` and `NOTIFICATION_EMAIL` set in dashboard |
+| **Environment variables** | `ADMIN_PASSWORD`, `NOTIFICATION_EMAIL`, `SMTP_USER`, `SMTP_PASS` set in dashboard |
 
 ### Setting up email notifications
 
-1. Deploy the site to Netlify
-2. Go to **Site settings > Forms** — you should see `rsvp-notifications` listed
-3. Click **Add notification > Email notification**
-4. Set the recipient email
-5. Each RSVP submission will trigger an email with guest details
+Email notifications are sent directly from the RSVP serverless function via Gmail SMTP. No third-party email service required.
+
+1. Enable 2FA on your Google account
+2. Create a Gmail App Password at https://myaccount.google.com/apppasswords
+3. Set `SMTP_USER` and `SMTP_PASS` environment variables in Netlify dashboard
+4. Set `NOTIFICATION_EMAIL` to the recipient address
+5. Each RSVP submission will send an email with the guest's name, status, contact info, and plus ones
 
 ### How data flows
 
@@ -133,7 +138,7 @@ Guest submits form
   → POST to /.netlify/functions/rsvp
     → Server validates + enforces deadline
     → Saves to Netlify Blobs
-  → JS submits hidden Netlify Form (triggers email notification)
+    → Sends email notification via Gmail SMTP
   → Success message shown to guest
 
 Admin views dashboard
@@ -152,8 +157,8 @@ The site is ~100 guests max. Plain HTML/CSS/JS keeps it fast, simple, and depend
 ### Netlify Blobs over a database
 Blobs provide simple key-value storage with zero config. For <100 RSVPs, it's more than sufficient and avoids managing a database service.
 
-### Netlify Forms for email notifications
-A hidden `<form data-netlify="true">` is submitted via JS after each RSVP. Netlify handles email delivery natively — no Resend, SendGrid, or API keys needed.
+### Gmail SMTP for email notifications
+The RSVP function sends notifications directly via Gmail SMTP using Nodemailer. No third-party email tracking service — emails go from your own Gmail account to yourself.
 
 ### CSS variables over a framework
 All design tokens (colors, spacing, typography, transitions, z-indices) are centralized as CSS custom properties. This gives Tailwind-like consistency without the build tooling.
