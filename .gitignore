@@ -1,0 +1,27 @@
+# Dependencies
+node_modules
+
+# Netlify
+.netlify
+deno.lock
+
+# Environment variables
+.env
+
+# IDE / Editor
+.idea
+.vscode
+
+# Shell config (WSL artifacts)
+.bash_profile
+.bashrc
+.profile
+.zprofile
+.zshrc
+.gitconfig
+.gitmodules
+.ripgreprc
+
+# AI tooling
+.claude
+.mcp.json
