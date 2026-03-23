@@ -909,6 +909,7 @@ section {
   .hero-title { width: 100%; padding: var(--space-s) var(--space-m); }
   .hero .divider { margin-bottom: 0.75rem; }
 
+  .countdown { margin-bottom: var(--space-xl); }
   .countdown-inner { gap: 1.2rem; }
   .countdown-value { font-size: var(--text-xl); }
   .countdown-label { font-size: 0.55rem; }
