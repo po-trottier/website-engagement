@@ -7,7 +7,7 @@
 
   var SAVE_ICON = '<svg class="icon" viewBox="0 0 24 24"><path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"/></svg>';
   var NEW_PREFIX = "__new__";
-  var PAGE_SIZE = 20;
+  var PAGE_SIZE = 100;
 
   var rsvps = [];
   var pendingNew = [];
@@ -18,6 +18,8 @@
   var selected = new Set();
   var dirty = new Set();
   var currentPage = 1;
+  var lastClickedId = null;  // for shift-click range selection
+  var sortedAll = [];        // full sorted row list (across all pages)
 
   var loginEl = document.getElementById("login");
   var dashboardEl = document.getElementById("dashboard");
@@ -171,6 +173,7 @@
     });
 
     var all = pendingNew.concat(sorted);
+    sortedAll = all;
     var totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
     if (currentPage > totalPages) currentPage = totalPages;
     var start = (currentPage - 1) * PAGE_SIZE;
@@ -259,11 +262,34 @@
       updateActionBar();
     });
 
-    // Row checkboxes
+    // Row checkboxes (with shift-click range selection)
     tableBody.querySelectorAll(".row-check").forEach(function (cb) {
-      cb.addEventListener("change", function () {
+      cb.addEventListener("click", function (e) {
         var id = cb.closest("tr").dataset.id;
-        if (cb.checked) selected.add(id); else selected.delete(id);
+
+        if (e.shiftKey && lastClickedId && lastClickedId !== id) {
+          // Find indices in the full sorted list (works across pages)
+          var fromIdx = -1, toIdx = -1;
+          for (var si = 0; si < sortedAll.length; si++) {
+            if (sortedAll[si].id === lastClickedId) fromIdx = si;
+            if (sortedAll[si].id === id) toIdx = si;
+          }
+          if (fromIdx !== -1 && toIdx !== -1) {
+            var lo = Math.min(fromIdx, toIdx);
+            var hi = Math.max(fromIdx, toIdx);
+            for (var ri = lo; ri <= hi; ri++) {
+              selected.add(sortedAll[ri].id);
+            }
+            // Update visible checkboxes on current page
+            tableBody.querySelectorAll(".row-check").forEach(function (c) {
+              c.checked = selected.has(c.closest("tr").dataset.id);
+            });
+          }
+        } else {
+          if (cb.checked) selected.add(id); else selected.delete(id);
+        }
+
+        lastClickedId = id;
         document.getElementById("select-all").checked = selected.size === rows.length;
         updateActionBar();
       });
