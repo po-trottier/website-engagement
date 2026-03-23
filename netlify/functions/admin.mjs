@@ -37,23 +37,26 @@ export default async (req) => {
 
     // ---------- List ----------
     if (action === "list") {
-      let index = [];
-      try {
-        index = await store.get("_index", { type: "json" });
-        if (!Array.isArray(index)) index = [];
-      } catch {
-        index = [];
-      }
-
-      const rsvps = [];
-      for (const id of index) {
-        try {
-          const rsvp = await store.get(id, { type: "json" });
-          if (rsvp) rsvps.push(rsvp);
-        } catch {
-          // Skip missing
+      // Use store.list() as source of truth instead of _index to avoid
+      // race-condition data loss from concurrent read-modify-write on _index.
+      // Cost is identical: 1 list + N gets == 1 get(_index) + N gets.
+      const keys = [];
+      let cursor = null;
+      do {
+        const page = await store.list(cursor ? { cursor } : {});
+        for (const entry of page.blobs) {
+          if (entry.key !== "_index") keys.push(entry.key);
         }
-      }
+        cursor = page.blobs.length > 0 ? page.cursor : null;
+      } while (cursor);
+
+      // Fetch all RSVPs in parallel for speed
+      const results = await Promise.allSettled(
+        keys.map((key) => store.get(key, { type: "json" }))
+      );
+      const rsvps = results
+        .filter((r) => r.status === "fulfilled" && r.value)
+        .map((r) => r.value);
 
       rsvps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -120,15 +123,20 @@ export default async (req) => {
 
       await store.setJSON(id, rsvp);
 
-      let index = [];
+      // Best-effort index update (list() is the source of truth)
       try {
-        index = await store.get("_index", { type: "json" });
-        if (!Array.isArray(index)) index = [];
+        let index = [];
+        try {
+          index = await store.get("_index", { type: "json" });
+          if (!Array.isArray(index)) index = [];
+        } catch {
+          index = [];
+        }
+        index.push(id);
+        await store.setJSON("_index", index);
       } catch {
-        index = [];
+        // Non-fatal: blob is persisted and will appear via store.list()
       }
-      index.push(id);
-      await store.setJSON("_index", index);
 
       return new Response(JSON.stringify({ success: true, rsvp }), {
         status: 200,
@@ -148,15 +156,20 @@ export default async (req) => {
 
       await store.delete(id);
 
-      let index = [];
+      // Best-effort index cleanup (list() is the source of truth)
       try {
-        index = await store.get("_index", { type: "json" });
-        if (!Array.isArray(index)) index = [];
+        let index = [];
+        try {
+          index = await store.get("_index", { type: "json" });
+          if (!Array.isArray(index)) index = [];
+        } catch {
+          index = [];
+        }
+        index = index.filter((i) => i !== id);
+        await store.setJSON("_index", index);
       } catch {
-        index = [];
+        // Non-fatal: blob is deleted and won't appear via store.list()
       }
-      index = index.filter((i) => i !== id);
-      await store.setJSON("_index", index);
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,

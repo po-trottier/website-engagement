@@ -54,22 +54,30 @@ export default async (req) => {
     // Save the RSVP
     await store.setJSON(id, rsvp);
 
-    // Update index with retry for concurrent writes
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        let index = [];
+    // Update index (best-effort — admin dashboard uses store.list() as
+    // source of truth, so a failed index write cannot lose RSVPs)
+    try {
+      for (let attempt = 0; attempt < 3; attempt++) {
         try {
-          index = await store.get("_index", { type: "json" });
-          if (!Array.isArray(index)) index = [];
+          let index = [];
+          try {
+            index = await store.get("_index", { type: "json" });
+            if (!Array.isArray(index)) index = [];
+          } catch {
+            index = [];
+          }
+          index.push(id);
+          await store.setJSON("_index", index);
+          break;
         } catch {
-          index = [];
+          if (attempt === 2) {
+            // Index update failed — RSVP blob is saved and will be
+            // discovered via store.list(), so we continue gracefully
+          }
         }
-        index.push(id);
-        await store.setJSON("_index", index);
-        break;
-      } catch {
-        if (attempt === 2) throw new Error("Failed to update index");
       }
+    } catch {
+      // Non-fatal: blob is already persisted
     }
 
     // Send email notification (non-blocking)
