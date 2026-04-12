@@ -17,6 +17,7 @@
   var sortAsc = false;
   var selected = new Set();
   var dirty = new Set();
+  var dirtyFields = {};
   var currentPage = 1;
   var lastClickedId = null;  // for shift-click range selection
   var sortedAll = [];        // full sorted row list (across all pages)
@@ -94,6 +95,7 @@
     rsvps = [];
     pendingNew = [];
     dirty.clear();
+    dirtyFields = {};
     selected.clear();
     dashboardEl.style.display = "none";
     logoutBtn.style.display = "none";
@@ -185,14 +187,15 @@
       var isDirty = isNew || dirty.has(r.id);
       var rowClass = isNew ? ' class="row-new"' : "";
       var dateStr = isNew ? "New" : new Date(r.createdAt).toLocaleDateString();
+      var v = dirtyFields[r.id] ? Object.assign({}, r, dirtyFields[r.id]) : r;
 
       return '<tr data-id="' + esc(r.id) + '"' + rowClass + '>' +
         '<td class="select-col"><input type="checkbox" class="row-check"' + checked + '></td>' +
-        '<td><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="name" value="' + escAttr(r.name) + '"' + (isNew ? ' autofocus' : '') + '></td>' +
-        '<td><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="email" value="' + escAttr(r.email || "") + '"></td>' +
-        '<td><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="phone" value="' + escAttr(r.phone || "") + '"></td>' +
-        '<td><select class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="attending"><option value="true"' + (r.attending ? " selected" : "") + '>Yes</option><option value="false"' + (!r.attending ? " selected" : "") + '>No</option></select></td>' +
-        '<td><input class="edit-field edit-field-small' + (isDirty ? " dirty" : "") + '" type="number" data-field="plusOnes" min="0" max="10" value="' + (r.plusOnes || 0) + '"></td>' +
+        '<td><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="name" value="' + escAttr(v.name) + '"' + (isNew ? ' autofocus' : '') + '></td>' +
+        '<td><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="email" value="' + escAttr(v.email || "") + '"></td>' +
+        '<td><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="phone" value="' + escAttr(v.phone || "") + '"></td>' +
+        '<td><select class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="attending"><option value="true"' + (v.attending ? " selected" : "") + '>Yes</option><option value="false"' + (!v.attending ? " selected" : "") + '>No</option></select></td>' +
+        '<td><input class="edit-field edit-field-small' + (isDirty ? " dirty" : "") + '" type="number" data-field="plusOnes" min="0" max="10" value="' + (v.plusOnes || 0) + '"></td>' +
         '<td class="td-date">' + dateStr + '</td></tr>';
     }).join("");
 
@@ -298,10 +301,12 @@
     // Dirty tracking
     tableBody.querySelectorAll(".edit-field").forEach(function (field) {
       function markDirty() {
-        var id = field.closest("tr").dataset.id;
+        var tr = field.closest("tr");
+        var id = tr.dataset.id;
         if (id.indexOf(NEW_PREFIX) === 0) return; // already tracked as new
         dirty.add(id);
-        field.closest("tr").querySelectorAll(".edit-field").forEach(function (f) {
+        dirtyFields[id] = readRowFields(tr);
+        tr.querySelectorAll(".edit-field").forEach(function (f) {
           f.classList.add("dirty");
         });
         updateActionBar();
@@ -357,11 +362,12 @@
     var allIds = Array.from(dirty).concat(pendingNew.map(function (r) { return r.id; }));
     for (var v = 0; v < allIds.length; v++) {
       var tr = tableBody.querySelector('tr[data-id="' + allIds[v] + '"]');
-      if (!tr) continue;
-      var err = validateFields(readRowFields(tr));
+      var fields = tr ? readRowFields(tr) : dirtyFields[allIds[v]];
+      if (!fields) continue;
+      var err = validateFields(fields);
       if (err) {
         alert(err);
-        tr.querySelector('.edit-field[data-field="name"]').focus();
+        if (tr) tr.querySelector('.edit-field[data-field="name"]').focus();
         return;
       }
     }
@@ -374,8 +380,8 @@
     for (var i = 0; i < dirtyIds.length; i++) {
       var id = dirtyIds[i];
       var tr = tableBody.querySelector('tr[data-id="' + id + '"]');
-      if (!tr) continue;
-      var fields = readRowFields(tr);
+      var fields = tr ? readRowFields(tr) : dirtyFields[id];
+      if (!fields) continue;
 
       try {
         var data = await api("update", { id: id, fields: fields });
@@ -402,6 +408,7 @@
 
     pendingNew = [];
     dirty.clear();
+    dirtyFields = {};
     renderCards();
     renderTable();
   });
@@ -471,6 +478,9 @@
     dirty = new Set(Array.from(dirty).filter(function (id) {
       return rsvps.some(function (r) { return r.id === id; });
     }));
+    Object.keys(dirtyFields).forEach(function (id) {
+      if (!dirty.has(id)) delete dirtyFields[id];
+    });
     renderCards();
     renderTable();
   });
