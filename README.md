@@ -102,7 +102,8 @@ Accessible at `/admin`. Password-protected (uses `ADMIN_PASSWORD` env var).
 - **Export**: Popover with CSV download option.
 - **Select all**: Checkbox in header to toggle all rows. Selection count shown in action bar.
 - **Sorting**: Click any column header to sort ascending/descending.
-- **Pagination**: 20 rows per page with ellipsis for large datasets.
+- **Pagination**: 100 rows per page with ellipsis for large datasets.
+- **Mobile cards**: On mobile, table rows become collapsible cards. Cards show at-a-glance attending status (checkmark/X) and +1 count, and expand to reveal full details on tap. Selection count appears in the sort row.
 
 ### Action Bar Order
 

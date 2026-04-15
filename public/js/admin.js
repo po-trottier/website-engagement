@@ -40,6 +40,7 @@
   var exportCsv = document.getElementById("export-csv");
   var paginationEl = document.getElementById("pagination");
   var logoutBtn = document.getElementById("logout-btn");
+  var mobileSortSelect = document.getElementById("mobile-sort-select");
 
   // ---------- API ----------
   function api(action, extra) {
@@ -110,6 +111,8 @@
   function updateActionBar() {
     var count = selected.size;
     batchCount.textContent = count;
+    var mb = document.getElementById("mobile-batch-count");
+    if (mb) mb.textContent = count;
     batchEmailBtn.disabled = count === 0;
     batchDeleteBtn.disabled = count === 0;
     var totalDirty = dirty.size + pendingNew.length;
@@ -136,7 +139,7 @@
       { value: total, label: "Responses" },
       { value: attending, label: "Attending" },
       { value: declined, label: "Declined" },
-      { value: plusOnes, label: "Plus Ones" },
+      { value: plusOnes, label: "+1s" },
       { value: attending + plusOnes, label: "Total Guests" },
     ].map(function (c) {
       return '<div class="card"><div class="card-value">' + c.value + '</div><div class="card-label">' + c.label + '</div></div>';
@@ -163,6 +166,14 @@
         return '<th data-col="' + col.key + '">' + col.label + (sortCol === col.key ? (sortAsc ? " ▲" : " ▼") : "") + "</th>";
       }).join("") + "</tr>";
 
+    // Sync mobile sort dropdown
+    if (mobileSortSelect) {
+      var mobileVal = sortCol + "-" + (sortAsc ? "asc" : "desc");
+      if (mobileSortSelect.querySelector('option[value="' + mobileVal + '"]')) {
+        mobileSortSelect.value = mobileVal;
+      }
+    }
+
     // Pending new rows first (unsorted), then sorted saved rows
     var sorted = rsvps.slice().sort(function (a, b) {
       var av = a[sortCol], bv = b[sortCol];
@@ -181,6 +192,14 @@
     var start = (currentPage - 1) * PAGE_SIZE;
     var display = all.slice(start, start + PAGE_SIZE);
 
+    if (all.length === 0) {
+      tableBody.innerHTML = '<tr class="empty-row"><td colspan="' + (columns.length + 1) + '">No RSVPs yet.<br>Click the + button to add a guest.</td></tr>';
+      renderPagination(0, 1);
+      bindTableEvents(rows);
+      updateActionBar();
+      return;
+    }
+
     tableBody.innerHTML = display.map(function (r) {
       var isNew = r.id.indexOf(NEW_PREFIX) === 0;
       var checked = selected.has(r.id) ? " checked" : "";
@@ -191,12 +210,12 @@
 
       return '<tr data-id="' + esc(r.id) + '"' + rowClass + '>' +
         '<td class="select-col"><input type="checkbox" class="row-check"' + checked + '></td>' +
-        '<td><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="name" value="' + escAttr(v.name) + '"' + (isNew ? ' autofocus' : '') + '></td>' +
-        '<td><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="email" value="' + escAttr(v.email || "") + '"></td>' +
-        '<td><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="phone" value="' + escAttr(v.phone || "") + '"></td>' +
-        '<td><select class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="attending"><option value="true"' + (v.attending ? " selected" : "") + '>Yes</option><option value="false"' + (!v.attending ? " selected" : "") + '>No</option></select></td>' +
-        '<td><input class="edit-field edit-field-small' + (isDirty ? " dirty" : "") + '" type="number" data-field="plusOnes" min="0" max="10" value="' + (v.plusOnes || 0) + '"></td>' +
-        '<td class="td-date">' + dateStr + '</td></tr>';
+        '<td data-label="Name">' + (v.attending ? '<span class="glance-yes card-glance">&#10003;</span>' : '<span class="glance-no card-glance">&#10005;</span>') + '<input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="name" value="' + escAttr(v.name) + '"' + (isNew ? ' autofocus' : '') + '>' + (v.plusOnes > 0 ? '<span class="glance-plus card-glance">+' + v.plusOnes + '</span>' : '') + '<span class="card-toggle"><svg class="icon" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/></svg></span></td>' +
+        '<td class="card-detail" data-label="Email"><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="email" value="' + escAttr(v.email || "") + '"></td>' +
+        '<td class="card-detail" data-label="Phone"><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="phone" value="' + escAttr(v.phone || "") + '"></td>' +
+        '<td class="card-detail" data-label="Attending"><select class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="attending"><option value="true"' + (v.attending ? " selected" : "") + '>Yes</option><option value="false"' + (!v.attending ? " selected" : "") + '>No</option></select></td>' +
+        '<td class="card-detail" data-label="+1s"><input class="edit-field edit-field-small' + (isDirty ? " dirty" : "") + '" type="number" data-field="plusOnes" min="0" max="10" value="' + (v.plusOnes || 0) + '"></td>' +
+        '<td class="card-detail td-date" data-label="Date">' + dateStr + '</td></tr>';
     }).join("");
 
     renderPagination(all.length, totalPages);
@@ -306,6 +325,7 @@
         if (id.indexOf(NEW_PREFIX) === 0) return; // already tracked as new
         dirty.add(id);
         dirtyFields[id] = readRowFields(tr);
+        tr.classList.add("row-dirty");
         tr.querySelectorAll(".edit-field").forEach(function (f) {
           f.classList.add("dirty");
         });
@@ -323,6 +343,24 @@
         else { sortCol = col; sortAsc = true; }
         renderTable();
       });
+    });
+
+    // Mobile card collapse/expand
+    tableBody.querySelectorAll(".card-toggle").forEach(function (toggle) {
+      toggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        toggle.closest("tr").classList.toggle("card-open");
+      });
+    });
+  }
+
+  // ---------- Mobile sort ----------
+  if (mobileSortSelect) {
+    mobileSortSelect.addEventListener("change", function () {
+      var parts = this.value.split("-");
+      sortCol = parts[0];
+      sortAsc = parts[1] === "asc";
+      renderTable();
     });
   }
 

@@ -13,9 +13,11 @@
     :root {
       --primary: #1C5630;
       --accent: #f07a2b;
+      --danger: #c0392b;
       --bg: #E7D8C6;
       --text: #1F2E27;
       --bg-light: #f0e8dc;
+      --bp-mobile: 900px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -191,14 +193,14 @@
     }
 
     .button-danger {
-      border-color: #c0392b;
-      color: #c0392b;
+      border-color: var(--danger);
+      color: var(--danger);
     }
 
-    .button-danger:hover { background: #c0392b; color: var(--bg); }
+    .button-danger:hover { background: var(--danger); color: var(--bg); }
 
     .button-icon.button-danger {
-      color: #c0392b;
+      color: var(--danger);
     }
 
     .button-icon.button-danger:hover {
@@ -207,12 +209,12 @@
     }
 
     .button-icon.button-danger:disabled {
-      color: #c0392b;
+      color: var(--danger);
     }
 
     .button-icon.button-danger:disabled:hover {
       background: transparent;
-      color: #c0392b;
+      color: var(--danger);
     }
 
     /* ---------- Export popover ---------- */
@@ -307,6 +309,14 @@
       opacity: 0.7;
     }
 
+    /* ---------- Empty state ---------- */
+    .empty-row td {
+      text-align: center;
+      padding: 3rem 1rem;
+      font-size: 0.9rem;
+      opacity: 0.5;
+    }
+
     /* ---------- Editable fields ---------- */
     .edit-field {
       width: 100%;
@@ -392,6 +402,316 @@
       color: var(--accent);
       text-decoration-color: var(--accent);
     }
+
+    /* ---------- Mobile sort dropdown ---------- */
+    .mobile-sort {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.8rem;
+    }
+
+    .mobile-sort-count { display: none; }
+    .card-toggle { display: none; }
+    .card-glance { display: none; }
+
+    .mobile-sort-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .mobile-sort label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+
+    .mobile-sort select {
+      padding: 0.4rem 0.6rem;
+      border: 1.5px solid rgba(28,86,48,0.3);
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.8rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    /* ---------- Mobile responsive ---------- */
+    /* NOTE: CSS custom properties cannot be used in @media queries;
+       keep this value in sync with --bp-mobile in :root */
+    @media (max-width: 900px) {
+      .mobile-sort { display: flex; }
+
+      /* -- Summary cards: stacked list -- */
+      .cards {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        background: var(--bg-light);
+        border-radius: 4px;
+        padding: 0.4rem 0.8rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .card {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        background: transparent;
+        border-radius: 0;
+        border-bottom: 1px solid rgba(28,86,48,0.1);
+        text-align: left;
+      }
+
+      .card:last-child {
+        border-bottom: none;
+      }
+
+      .card-label {
+        order: -1;
+        font-size: 0.75rem;
+        margin-top: 0;
+      }
+
+      .card-value {
+        font-size: 1.3rem;
+      }
+
+      /* -- Action bar: larger touch targets, wrap -- */
+      .action-bar {
+        flex-wrap: wrap;
+        gap: 0.2rem;
+      }
+
+      .button-icon {
+        padding: 0.6rem 0.3rem;
+      }
+
+      .button-icon .icon {
+        width: 1.3rem;
+        height: 1.3rem;
+      }
+
+      .action-bar .button-icon:first-child {
+        padding-left: 0;
+      }
+
+      .action-bar-spacer { display: none; }
+
+      /* Hide selection count from action bar on mobile (shown in sort row instead) */
+      .action-bar-divider { display: none; }
+      .action-bar > .action-bar-count { display: none; }
+
+      /* Sort row: count left, sort right */
+      .mobile-sort { justify-content: space-between; }
+      .mobile-sort-count { display: inline; }
+
+      /* -- Table to cards -- */
+      .table-wrap table thead { display: none; }
+
+      .table-wrap table,
+      .table-wrap table tbody {
+        display: block;
+        width: 100%;
+      }
+
+      .table-wrap { overflow-x: visible; }
+
+      /* Empty state: single column, no grid */
+      .table-wrap table tr.empty-row {
+        display: block;
+        padding: 2rem 1rem;
+      }
+
+      .table-wrap table tr.empty-row td {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 0;
+      }
+
+      /* Each row is a card using CSS grid: checkbox column + content column */
+      .table-wrap table tr {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        column-gap: 0.5rem;
+        grid-template-rows: auto;
+        background: var(--bg-light);
+        border-radius: 4px;
+        padding: 0.8rem;
+        margin-bottom: 0.8rem;
+        border-left: 3px solid transparent;
+      }
+
+      .table-wrap table tr.row-dirty {
+        border-left-color: var(--accent);
+      }
+
+      .table-wrap table tr.row-new {
+        border-left-color: var(--accent);
+      }
+
+      .table-wrap table tr.row-new td {
+        background: transparent;
+      }
+
+      .table-wrap table td {
+        border-bottom: none;
+        padding: 0.25rem 0;
+      }
+
+      .table-wrap table tr:hover td {
+        background: transparent;
+      }
+
+      /* Checkbox: own column, spans all 7 rows (1 per data field + itself), vertically centered */
+      .table-wrap table td.select-col {
+        grid-column: 1;
+        grid-row: 1 / span 7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        padding: 0 0.4rem;
+      }
+
+      /* All data cells go in column 2 */
+      .table-wrap table td[data-label] {
+        grid-column: 2;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+
+      .table-wrap table td[data-label]::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 5.5rem;
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--primary);
+        opacity: 0.7;
+        vertical-align: middle;
+        flex-shrink: 0;
+      }
+
+      /* Name: prominent, with label like other fields */
+      .table-wrap table td[data-label="Name"] {
+        padding-bottom: 0.4rem;
+      }
+
+      /* Collapsed: hide the "NAME" label, let input size to content */
+      .table-wrap table td[data-label="Name"]::before {
+        display: none;
+      }
+
+      .table-wrap table tr.card-open td[data-label="Name"]::before {
+        display: inline-block;
+      }
+
+      .table-wrap table tr.card-open td[data-label="Name"] {
+        margin-bottom: 0.3rem;
+        border-bottom: 1px solid rgba(28,86,48,0.08);
+      }
+
+      .table-wrap table td[data-label] .edit-field {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+      }
+
+      .table-wrap table td[data-label="Name"] .edit-field {
+        font-size: 1rem;
+        font-weight: 600;
+        field-sizing: content;
+        flex: 0 1 auto;
+      }
+
+      .table-wrap table tr.card-open td[data-label="Name"] .edit-field {
+        field-sizing: fixed;
+        flex: 1;
+      }
+
+      /* Fix select alignment to match input fields */
+      .table-wrap table td[data-label] select.edit-field {
+        padding-left: 0.25rem;
+        margin-left: -0.05rem;
+      }
+
+      /* -- Collapsible card details -- */
+      .table-wrap table td.card-detail {
+        display: none;
+      }
+
+      .table-wrap table tr.card-open td.card-detail {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+
+      /* Chevron toggle on name row */
+      .card-toggle {
+        display: inline-flex;
+        align-items: center;
+        margin-left: auto;
+        padding: 0 0.2rem;
+        flex-shrink: 0;
+        opacity: 0.4;
+        transition: transform 0.2s;
+        cursor: pointer;
+      }
+
+      .card-toggle .icon {
+        width: 1rem;
+        height: 1rem;
+      }
+
+      .table-wrap table tr.card-open .card-toggle {
+        transform: rotate(180deg);
+      }
+
+      /* At-a-glance indicators */
+      .card-glance {
+        display: inline-flex;
+        flex-shrink: 0;
+        font-weight: 400;
+        font-size: 0.8rem;
+      }
+
+      .glance-yes { color: var(--primary); }
+      .glance-no { color: var(--danger); }
+      .glance-plus { opacity: 0.5; margin-left: 0.3rem; }
+
+      .table-wrap table tr.card-open .card-glance {
+        display: none;
+      }
+
+      /* Checkbox spans only 1 row when collapsed */
+      .table-wrap table td.select-col {
+        grid-row: 1 / span 1;
+        align-items: center;
+      }
+
+      .table-wrap table tr.card-open td.select-col {
+        grid-row: 1 / span 7;
+      }
+
+      .table-wrap table .td-date {
+        font-size: 0.75rem;
+        opacity: 0.5;
+      }
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 1.4rem; }
+    }
   </style>
 </head>
 <body>
@@ -430,6 +750,21 @@
             <button id="export-csv"><svg class="icon" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg> CSV</button>
           </div>
         </div>
+      </div>
+
+      <div class="mobile-sort" id="mobile-sort">
+        <span class="mobile-sort-count action-bar-count"><span id="mobile-batch-count">0</span> selected</span>
+        <span class="mobile-sort-controls">
+          <label for="mobile-sort-select">Sort by</label>
+          <select id="mobile-sort-select">
+            <option value="createdAt-desc">Date (newest)</option>
+            <option value="createdAt-asc">Date (oldest)</option>
+            <option value="name-asc">Name (A–Z)</option>
+            <option value="name-desc">Name (Z–A)</option>
+            <option value="attending-desc">Attending first</option>
+            <option value="attending-asc">Declined first</option>
+          </select>
+        </span>
       </div>
 
       <div class="table-wrap">
