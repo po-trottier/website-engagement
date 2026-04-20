@@ -216,7 +216,10 @@
     var display = all.slice(start, start + PAGE_SIZE);
 
     if (all.length === 0) {
-      tableBody.innerHTML = '<tr class="empty-row"><td colspan="' + (columns.length + 1) + '">No RSVPs yet.<br>Click the + button to add a guest.</td></tr>';
+      var emptyMsg = canWrite
+        ? 'No RSVPs yet.<br>Click the + button to add a guest.'
+        : 'No RSVPs yet.';
+      tableBody.innerHTML = '<tr class="empty-row"><td colspan="' + (columns.length + 1) + '">' + emptyMsg + '</td></tr>';
       renderPagination(0, 1);
       bindTableEvents(rows);
       updateActionBar();
