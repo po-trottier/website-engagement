@@ -4,14 +4,22 @@ import { timingSafeEqual } from "node:crypto";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+function matches(input, secret) {
+  if (!secret || secret.length < 8 || secret === "changeme") return false;
+  if (input.length !== secret.length) return false;
+  return timingSafeEqual(Buffer.from(input), Buffer.from(secret));
+}
+
+// Returns "write" | "readonly" | null. Write is checked first so that if an
+// operator misconfigures both env vars to the same value, the caller gets the
+// more-privileged interpretation (fail-safe for the operator, not the attacker).
 function authenticate(body) {
-  const adminPassword = Netlify.env.get("ADMIN_PASSWORD");
-  if (!adminPassword || adminPassword.length < 8 || adminPassword === "changeme") {
-    return false;
-  }
   const input = String(body.password || "");
-  if (input.length !== adminPassword.length) return false;
-  return timingSafeEqual(Buffer.from(input), Buffer.from(adminPassword));
+  const writePw = Netlify.env.get("ADMIN_WRITE_PASSWORD");
+  const readPw = Netlify.env.get("ADMIN_PASSWORD");
+  if (matches(input, writePw)) return "write";
+  if (matches(input, readPw)) return "readonly";
+  return null;
 }
 
 export default async (req) => {
@@ -25,7 +33,8 @@ export default async (req) => {
   try {
     const body = await req.json();
 
-    if (!authenticate(body)) {
+    const mode = authenticate(body);
+    if (!mode) {
       return new Response(JSON.stringify({ error: "Invalid password" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
@@ -34,6 +43,13 @@ export default async (req) => {
 
     const store = getStore("rsvps");
     const action = body.action || "list";
+
+    if (action !== "list" && mode !== "write") {
+      return new Response(
+        JSON.stringify({ error: "Readonly mode: write access required" }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     // ---------- List ----------
     if (action === "list") {
@@ -62,7 +78,7 @@ export default async (req) => {
 
       const adminEmail = Netlify.env.get("NOTIFICATION_EMAIL") || "";
 
-      return new Response(JSON.stringify({ rsvps, adminEmail }), {
+      return new Response(JSON.stringify({ rsvps, adminEmail, mode }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
