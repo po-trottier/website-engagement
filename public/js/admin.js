@@ -43,6 +43,9 @@
   var logoutBtn = document.getElementById("logout-btn");
   var mobileSortSelect = document.getElementById("mobile-sort-select");
 
+  // Elements hidden when the session is readonly.
+  var mutatingActionEls = [addBtn, saveBtn, batchDeleteBtn];
+
   // ---------- API ----------
   function api(action, extra) {
     return fetch("/.netlify/functions/admin", {
@@ -76,6 +79,7 @@
       loginEl.style.display = "none";
       dashboardEl.style.display = "block";
       logoutBtn.style.display = "";
+      applyMode();
       renderCards();
       renderTable();
     }).catch(function () {
@@ -121,6 +125,22 @@
     var totalDirty = dirty.size + pendingNew.length;
     saveBtn.disabled = totalDirty === 0;
     saveBtn.innerHTML = totalDirty > 0 ? SAVE_ICON + " " + totalDirty : SAVE_ICON;
+  }
+
+  // Show/hide mutating controls based on canWrite. Called after login so the
+  // initial DOM matches the permission level.
+  function applyMode() {
+    var hide = !canWrite;
+    mutatingActionEls.forEach(function (el) {
+      if (el) el.hidden = hide;
+    });
+    // The two .action-bar-spacer elements bracket the save button. When save
+    // is hidden they'd create a double-wide dead gap — hide them too so the
+    // remaining controls sit flush. Keep the .action-bar-divider / count pair
+    // because it still labels the batch-email selection.
+    document.querySelectorAll(".action-bar .action-bar-spacer").forEach(function (el) {
+      el.hidden = hide;
+    });
   }
 
   // ---------- All rows (saved + pending) ----------
