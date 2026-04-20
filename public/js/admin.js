@@ -223,6 +223,8 @@
       return;
     }
 
+    var ro = canWrite ? "" : " readonly aria-readonly=\"true\"";
+    var dis = canWrite ? "" : " disabled aria-disabled=\"true\"";
     tableBody.innerHTML = display.map(function (r) {
       var isNew = r.id.indexOf(NEW_PREFIX) === 0;
       var checked = selected.has(r.id) ? " checked" : "";
@@ -233,11 +235,11 @@
 
       return '<tr data-id="' + esc(r.id) + '"' + rowClass + '>' +
         '<td class="select-col"><input type="checkbox" class="row-check"' + checked + '></td>' +
-        '<td data-label="Name">' + (v.attending ? '<span class="glance-yes card-glance">&#10003;</span>' : '<span class="glance-no card-glance">&#10005;</span>') + '<input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="name" value="' + escAttr(v.name) + '"' + (isNew ? ' autofocus' : '') + '>' + (v.plusOnes > 0 ? '<span class="glance-plus card-glance">+' + v.plusOnes + '</span>' : '') + '<span class="card-toggle"><svg class="icon" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/></svg></span></td>' +
-        '<td class="card-detail" data-label="Email"><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="email" value="' + escAttr(v.email || "") + '"></td>' +
-        '<td class="card-detail" data-label="Phone"><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="phone" value="' + escAttr(v.phone || "") + '"></td>' +
-        '<td class="card-detail" data-label="Attending"><select class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="attending"><option value="true"' + (v.attending ? " selected" : "") + '>Yes</option><option value="false"' + (!v.attending ? " selected" : "") + '>No</option></select></td>' +
-        '<td class="card-detail" data-label="+1s"><input class="edit-field edit-field-small' + (isDirty ? " dirty" : "") + '" type="number" data-field="plusOnes" min="0" max="10" value="' + (v.plusOnes || 0) + '"></td>' +
+        '<td data-label="Name">' + (v.attending ? '<span class="glance-yes card-glance">&#10003;</span>' : '<span class="glance-no card-glance">&#10005;</span>') + '<input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="name" value="' + escAttr(v.name) + '"' + (isNew ? ' autofocus' : '') + ro + '>' + (v.plusOnes > 0 ? '<span class="glance-plus card-glance">+' + v.plusOnes + '</span>' : '') + '<span class="card-toggle"><svg class="icon" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/></svg></span></td>' +
+        '<td class="card-detail" data-label="Email"><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="email" value="' + escAttr(v.email || "") + '"' + ro + '></td>' +
+        '<td class="card-detail" data-label="Phone"><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="phone" value="' + escAttr(v.phone || "") + '"' + ro + '></td>' +
+        '<td class="card-detail" data-label="Attending"><select class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="attending"' + dis + '><option value="true"' + (v.attending ? " selected" : "") + '>Yes</option><option value="false"' + (!v.attending ? " selected" : "") + '>No</option></select></td>' +
+        '<td class="card-detail" data-label="+1s"><input class="edit-field edit-field-small' + (isDirty ? " dirty" : "") + '" type="number" data-field="plusOnes" min="0" max="10" value="' + (v.plusOnes || 0) + '"' + ro + '></td>' +
         '<td class="card-detail td-date" data-label="Date">' + dateStr + '</td></tr>';
     }).join("");
 
@@ -340,23 +342,25 @@
       });
     });
 
-    // Dirty tracking
-    tableBody.querySelectorAll(".edit-field").forEach(function (field) {
-      function markDirty() {
-        var tr = field.closest("tr");
-        var id = tr.dataset.id;
-        if (id.indexOf(NEW_PREFIX) === 0) return; // already tracked as new
-        dirty.add(id);
-        dirtyFields[id] = readRowFields(tr);
-        tr.classList.add("row-dirty");
-        tr.querySelectorAll(".edit-field").forEach(function (f) {
-          f.classList.add("dirty");
-        });
-        updateActionBar();
-      }
-      field.addEventListener("input", markDirty);
-      field.addEventListener("change", markDirty);
-    });
+    // Dirty tracking (skip in readonly — no save path exists)
+    if (canWrite) {
+      tableBody.querySelectorAll(".edit-field").forEach(function (field) {
+        function markDirty() {
+          var tr = field.closest("tr");
+          var id = tr.dataset.id;
+          if (id.indexOf(NEW_PREFIX) === 0) return; // already tracked as new
+          dirty.add(id);
+          dirtyFields[id] = readRowFields(tr);
+          tr.classList.add("row-dirty");
+          tr.querySelectorAll(".edit-field").forEach(function (f) {
+            f.classList.add("dirty");
+          });
+          updateActionBar();
+        }
+        field.addEventListener("input", markDirty);
+        field.addEventListener("change", markDirty);
+      });
+    }
 
     // Sort
     tableHead.querySelectorAll("th[data-col]").forEach(function (th) {
