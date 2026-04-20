@@ -13,6 +13,7 @@
   var pendingNew = [];
   var password = "";
   var adminEmail = "";
+  var canWrite = false;  // single source of truth for UI permissions
   var sortCol = "createdAt";
   var sortAsc = false;
   var selected = new Set();
@@ -71,6 +72,7 @@
 
       rsvps = data.rsvps;
       adminEmail = data.adminEmail || "";
+      canWrite = data.mode === "write";
       loginEl.style.display = "none";
       dashboardEl.style.display = "block";
       logoutBtn.style.display = "";
@@ -98,6 +100,7 @@
     dirty.clear();
     dirtyFields = {};
     selected.clear();
+    canWrite = false;
     dashboardEl.style.display = "none";
     logoutBtn.style.display = "none";
     loginEl.style.display = "";
