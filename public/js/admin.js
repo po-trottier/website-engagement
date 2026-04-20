@@ -453,6 +453,7 @@
 
       try {
         var data = await api("update", { id: id, fields: fields });
+        if (data && data.error) { alert("Server error: " + data.error); continue; }
         if (data.rsvp) {
           var idx = rsvps.findIndex(function (r) { return r.id === id; });
           if (idx !== -1) rsvps[idx] = data.rsvp;
@@ -470,6 +471,7 @@
 
       try {
         var data = await api("create", { fields: fields });
+        if (data && data.error) { alert("Server error: " + data.error); continue; }
         if (data.rsvp) rsvps.unshift(data.rsvp);
       } catch { /* continue */ }
     }
@@ -537,7 +539,8 @@
       }
       // Delete saved rows via API
       try {
-        await api("delete", { id: id });
+        var data = await api("delete", { id: id });
+        if (data && data.error) { alert("Server error: " + data.error); continue; }
         rsvps = rsvps.filter(function (r) { return r.id !== id; });
       } catch { /* continue */ }
     }
