@@ -15,10 +15,13 @@ function matches(input, secret) {
 // more-privileged interpretation (fail-safe for the operator, not the attacker).
 function authenticate(body) {
   const input = String(body.password || "");
-  const writePw = Netlify.env.get("ADMIN_WRITE_PASSWORD");
-  const readPw = Netlify.env.get("ADMIN_PASSWORD");
-  if (matches(input, writePw)) return "write";
-  if (matches(input, readPw)) return "readonly";
+  // Always evaluate both compares before branching so the number of
+  // timing-safe comparisons performed doesn't depend on which password
+  // (if any) matched.
+  const isWrite = matches(input, Netlify.env.get("ADMIN_WRITE_PASSWORD"));
+  const isRead = matches(input, Netlify.env.get("ADMIN_PASSWORD"));
+  if (isWrite) return "write";
+  if (isRead) return "readonly";
   return null;
 }
 
