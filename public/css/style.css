@@ -81,10 +81,10 @@
   --z-nav: 100;
   --z-hamburger: 101;
 
-  /* --- Breakpoints (for reference, can't use in media queries) --- */
+  /* --- Breakpoints (reference values; media queries use matching literals) --- */
   /* --bp-small: 400px; */
   /* --bp-medium: 640px; */
-  /* --bp-large: 900px; */
+  /* --bp-layout: 1000px; */
 }
 
 /* ---------- Reset ---------- */
@@ -593,22 +593,47 @@ section {
 }
 
 /* ---------- Timeline ---------- */
+#details .section-heading {
+  margin-bottom: var(--space-s);
+}
+
+#details .timeline-warning {
+  max-width: 600px;
+  margin: 0 auto var(--space-l);
+  padding: var(--space-s) var(--space-m);
+  border-left: var(--border-thick) solid var(--color-accent);
+  background-color: var(--color-accent-12);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: var(--leading-snug);
+  text-align: left;
+}
+
+#details .timeline-warning strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
 .timeline {
-  max-width: var(--width-narrow);
+  max-width: 620px;
   margin: 0 auto;
   text-align: left;
 }
 
-.timeline-item {
+.timeline-segment {
   display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: var(--space-l);
-  padding: 1.6rem 0;
-  border-bottom: var(--border-thin) solid var(--color-primary-10);
+  grid-template-columns: 5.4rem 1.1rem minmax(0, 1fr);
+  gap: 0.85rem;
+  min-height: 5.2rem;
+  padding: 0.45rem 0;
 }
 
-.timeline-item:last-child {
-  border-bottom: none;
+.timeline-segment-short {
+  min-height: 4.4rem;
+}
+
+.timeline-segment-long {
+  min-height: 6rem;
 }
 
 .timeline-event {
@@ -616,19 +641,82 @@ section {
   font-style: italic;
   font-weight: 400;
   font-size: var(--text-l);
+  line-height: var(--leading-tight);
   color: var(--color-primary);
 }
 
-.timeline-time {
-  font-size: var(--text-m);
+.timeline-range,
+.timeline-rail {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100%;
+}
+
+.timeline-range {
+  align-items: flex-end;
+  padding: 0.04rem 0;
+  text-align: right;
+}
+
+.timeline-time-point span {
+  display: block;
+  color: var(--color-accent);
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-s);
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+}
+
+.timeline-time-point time {
+  display: block;
   color: var(--color-primary);
-  opacity: 0.8;
-  margin-top: 0.15rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+}
+
+.timeline-rail {
+  position: relative;
+  align-items: center;
+  padding: 0.24rem 0;
+}
+
+.timeline-rail::before {
+  content: "";
+  position: absolute;
+  top: 0.62rem;
+  bottom: 0.62rem;
+  left: 50%;
+  width: var(--border-thick);
+  background-color: var(--color-primary-35);
+  transform: translateX(-50%);
+}
+
+.timeline-node {
+  position: relative;
+  z-index: 1;
+  width: 0.58rem;
+  height: 0.58rem;
+  border: var(--border-thin) solid var(--color-primary);
+  border-radius: 50%;
+  background-color: var(--color-background);
+  box-shadow: 0 0 0 0.22rem var(--color-background);
+}
+
+.timeline-content {
+  align-self: start;
+  min-width: 0;
+  padding-top: 0.02rem;
 }
 
 .timeline-description {
   font-size: 0.92rem;
-  line-height: var(--leading-normal);
+  line-height: var(--leading-snug);
+  margin-top: 0.24rem;
+  margin-bottom: 0;
 }
 
 /* ---------- RSVP form ---------- */
@@ -893,8 +981,8 @@ section {
   to   { opacity: 1; }
 }
 
-/* ---------- Responsive: 900px ---------- */
-@media (max-width: 900px) {
+/* ---------- Responsive: 1000px ---------- */
+@media (max-width: 1000px) {
   .hero-title { width: 66vw; }
 
   .section-split {
@@ -909,6 +997,13 @@ section {
   .section-photo {
     width: 100%;
     aspect-ratio: 1 / 1;
+  }
+
+  .timeline-segment {
+    grid-template-columns: 4.8rem 1rem minmax(0, 1fr);
+    gap: 0.65rem;
+    min-height: 5rem;
+    padding: 0.5rem 0;
   }
 
   .navigation {
@@ -937,10 +1032,12 @@ section {
   .countdown-value { font-size: var(--text-xl); }
   .countdown-label { font-size: 0.55rem; }
 
-  .timeline-item {
-    grid-template-columns: 1fr;
-    gap: var(--space-xs);
-    text-align: center;
+  .timeline-event {
+    font-size: 1.05rem;
+  }
+
+  .timeline-time-point time {
+    font-size: 0.78rem;
   }
 
   section { padding: 3.5rem 0; }

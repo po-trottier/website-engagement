@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=layout-breakpoint-1000">
 
 </head>
 <body>
@@ -105,7 +105,7 @@
           </div>
           <div class="details-item">
             <dt>Food &amp; Drinks</dt>
-            <dd>Provided — come hungry!</dd>
+            <dd>Brunch buffet served 11:30 AM to 12:30 PM only. No additional food will be available after 12:30 PM.</dd>
           </div>
           <div class="details-item">
             <dt>Dress Code</dt>
@@ -117,7 +117,7 @@
           </div>
           <div class="details-item">
             <dt>Getting There</dt>
-            <dd>About 1 hour from San Jose<br><small><em>Plan extra time for beach traffic!</em></small></dd>
+            <dd>About 1 hour from San Jose<br><small><em>Sunday morning beach traffic in July can be heavy, so please leave extra time.</em></small></dd>
           </div>
           <div class="details-item details-item-highlight">
             <dt>RSVP by</dt>
@@ -138,32 +138,87 @@
       <div class="section-text">
         <h2 class="section-heading">Order of Events</h2>
 
+        <p class="timeline-warning"><strong>A tiny timing note:</strong> brunch will be out from 11:30 AM to 12:30 PM, and after that the buffet takes its final bow. Sunday morning beach traffic in July can be a little spicy, so please leave some extra wiggle room and come ready to eat.</p>
+
         <div class="timeline">
-          <div class="timeline-item">
-            <div>
-              <div class="timeline-event">Welcome &amp; Mimosas</div>
-              <div class="timeline-time">11:00 AM – 11:30 AM</div>
+          <div class="timeline-segment timeline-segment-short">
+            <div class="timeline-range">
+              <div class="timeline-time-point">
+                <span>Starts</span>
+                <time datetime="2026-07-26T11:00:00-07:00">11:00 AM</time>
+              </div>
+              <div class="timeline-time-point">
+                <span>Ends</span>
+                <time datetime="2026-07-26T11:30:00-07:00">11:30 AM</time>
+              </div>
             </div>
-            <div>
-              <p class="timeline-description">Arrive and settle in with a mimosa or refreshment. Mingle, catch up, and enjoy the beautiful setting as we gather everyone together.</p>
+            <div class="timeline-rail" aria-hidden="true">
+              <span class="timeline-node"></span>
+              <span class="timeline-node"></span>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-event">Guest Arrival</div>
+              <p class="timeline-description">Mimosas are on us, plus coffee and tea as everyone arrives and gets cozy.</p>
             </div>
           </div>
-          <div class="timeline-item">
-            <div>
-              <div class="timeline-event">Brunch</div>
-              <div class="timeline-time">11:30 AM – 1:00 PM</div>
+          <div class="timeline-segment">
+            <div class="timeline-range">
+              <div class="timeline-time-point">
+                <span>Starts</span>
+                <time datetime="2026-07-26T11:30:00-07:00">11:30 AM</time>
+              </div>
+              <div class="timeline-time-point">
+                <span>Ends</span>
+                <time datetime="2026-07-26T12:30:00-07:00">12:30 PM</time>
+              </div>
             </div>
-            <div>
-              <p class="timeline-description">Gather around for a delicious brunch and heartfelt toasts. Food and drinks are on us — come hungry and ready to celebrate!</p>
+            <div class="timeline-rail" aria-hidden="true">
+              <span class="timeline-node"></span>
+              <span class="timeline-node"></span>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-event">Brunch Buffet</div>
+              <p class="timeline-description">The buffet is open for one hour only. Food and drinks are on us — come hungry, because once it closes, no additional food will be available.</p>
             </div>
           </div>
-          <div class="timeline-item">
-            <div>
-              <div class="timeline-event">Celebration &amp; Fun</div>
-              <div class="timeline-time">1:00 PM – 3:00 PM</div>
+          <div class="timeline-segment">
+            <div class="timeline-range">
+              <div class="timeline-time-point">
+                <span>Starts</span>
+                <time datetime="2026-07-26T12:30:00-07:00">12:30 PM</time>
+              </div>
+              <div class="timeline-time-point">
+                <span>Ends</span>
+                <time datetime="2026-07-26T13:30:00-07:00">1:30 PM</time>
+              </div>
             </div>
-            <div>
-              <p class="timeline-description">The party continues with drinks, laughter, and good company. Because the best afternoons are the ones we never want to end!</p>
+            <div class="timeline-rail" aria-hidden="true">
+              <span class="timeline-node"></span>
+              <span class="timeline-node"></span>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-event">Toasts &amp; Speeches</div>
+              <p class="timeline-description">A few hand-picked loved ones will share the mic. No open floor, just happy listening, laughing, and maybe a tiny bit of happy crying.</p>
+            </div>
+          </div>
+          <div class="timeline-segment timeline-segment-long">
+            <div class="timeline-range">
+              <div class="timeline-time-point">
+                <span>Starts</span>
+                <time datetime="2026-07-26T13:30:00-07:00">1:30 PM</time>
+              </div>
+              <div class="timeline-time-point">
+                <span>Ends</span>
+                <time datetime="2026-07-26T15:00:00-07:00">3:00 PM</time>
+              </div>
+            </div>
+            <div class="timeline-rail" aria-hidden="true">
+              <span class="timeline-node"></span>
+              <span class="timeline-node"></span>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-event">Mix &amp; Mingle</div>
+              <p class="timeline-description">Drinks, laughter, and good company take over until we close out the afternoon with full hearts and grateful goodbyes.</p>
             </div>
           </div>
         </div>
@@ -235,7 +290,7 @@
       <img src="images/logo.svg" alt="" class="logo">
     </div>
     <div class="footer-names">P-O &amp; Athena's Engagement Party</div>
-    <div class="footer-date">July 26, 2026</div>
+    <div class="footer-date">Sunday, July 26, 2026</div>
     <div class="footer-venue"><a href="https://maps.google.com/?q=Salt+Wood+Kitchen+%26+Oysterette,+3295+Dunes+Dr,+Marina,+CA+93933" target="_blank" rel="noopener">Salt Wood Kitchen &amp; Oysterette<br>The Sanctuary Beach Resort<br>3295 Dunes Dr, Marina, CA 93933</a></div>
   </footer>
 
