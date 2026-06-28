@@ -157,6 +157,11 @@
     var plusOnes = rows
       .filter(function (r) { return r.attending; })
       .reduce(function (sum, r) { return sum + (r.plusOnes || 0); }, 0);
+    function partyGuests(party) {
+      return rows.reduce(function (sum, r) {
+        return sum + (r.attending && r.party === party ? 1 + (r.plusOnes || 0) : 0);
+      }, 0);
+    }
 
     cardsEl.innerHTML = [
       { value: total, label: "Responses" },
@@ -164,6 +169,8 @@
       { value: declined, label: "Declined" },
       { value: plusOnes, label: "+1s" },
       { value: attending + plusOnes, label: "Total Guests" },
+      { value: partyGuests("Athena"), label: "Athena Guests" },
+      { value: partyGuests("P-O"), label: "P-O Guests" },
     ].map(function (c) {
       return '<div class="card"><div class="card-value">' + c.value + '</div><div class="card-label">' + c.label + '</div></div>';
     }).join("");
@@ -172,6 +179,7 @@
   // ---------- Table ----------
   var columns = [
     { key: "name", label: "Name" },
+    { key: "party", label: "Party" },
     { key: "email", label: "Email" },
     { key: "phone", label: "Phone" },
     { key: "attending", label: "Attending" },
@@ -200,6 +208,7 @@
     // Pending new rows first (unsorted), then sorted saved rows
     var sorted = rsvps.slice().sort(function (a, b) {
       var av = a[sortCol], bv = b[sortCol];
+      if (sortCol === "party") { av = av || ""; bv = bv || ""; }
       if (typeof av === "string") av = av.toLowerCase();
       if (typeof bv === "string") bv = bv.toLowerCase();
       if (typeof av === "boolean") { av = av ? 1 : 0; bv = bv ? 1 : 0; }
@@ -239,6 +248,7 @@
       return '<tr data-id="' + esc(r.id) + '"' + rowClass + '>' +
         '<td class="select-col"><input type="checkbox" class="row-check"' + checked + '></td>' +
         '<td data-label="Name">' + (v.attending ? '<span class="glance-yes card-glance">&#10003;</span>' : '<span class="glance-no card-glance">&#10005;</span>') + '<input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="name" value="' + escAttr(v.name) + '"' + (isNew ? ' autofocus' : '') + ro + '>' + (v.plusOnes > 0 ? '<span class="glance-plus card-glance">+' + v.plusOnes + '</span>' : '') + '<span class="card-toggle"><svg class="icon" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/></svg></span></td>' +
+        '<td class="card-detail" data-label="Party"><select class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="party"' + dis + '><option value=""' + (!v.party ? " selected" : "") + '>---</option><option value="Athena"' + (v.party === "Athena" ? " selected" : "") + '>Athena</option><option value="P-O"' + (v.party === "P-O" ? " selected" : "") + '>P-O</option></select></td>' +
         '<td class="card-detail" data-label="Email"><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="email" value="' + escAttr(v.email || "") + '"' + ro + '></td>' +
         '<td class="card-detail" data-label="Phone"><input class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="phone" value="' + escAttr(v.phone || "") + '"' + ro + '></td>' +
         '<td class="card-detail" data-label="Attending"><select class="edit-field' + (isDirty ? " dirty" : "") + '" data-field="attending"' + dis + '><option value="true"' + (v.attending ? " selected" : "") + '>Yes</option><option value="false"' + (!v.attending ? " selected" : "") + '>No</option></select></td>' +
@@ -490,6 +500,7 @@
     pendingNew.push({
       id: tempId,
       name: "",
+      party: "",
       email: "",
       phone: "",
       attending: true,
@@ -568,10 +579,11 @@
 
   exportCsv.addEventListener("click", function () {
     exportMenu.classList.remove("open");
-    var header = "Name,Email,Phone,Attending,Plus Ones,Date";
+    var header = "Name,Party,Email,Phone,Attending,Plus Ones,Date";
     var rows = rsvps.map(function (r) {
       return [
         csvField(r.name),
+        csvField(r.party || "---"),
         csvField(r.email || ""),
         csvField(r.phone || ""),
         r.attending ? "Yes" : "No",

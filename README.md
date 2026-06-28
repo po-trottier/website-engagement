@@ -97,13 +97,13 @@ Accessible at `/admin`. `ADMIN_PASSWORD` grants read-only access; `ADMIN_WRITE_P
 
 ### Features
 
-- **Summary cards**: Total responses, attending, declined, plus ones, total guests
-- **Editable table**: Inline editing of name, email, phone, attending status, +1 count
+- **Summary cards**: Total responses, attending, declined, plus ones, total guests, and Athena/P-O guest totals
+- **Editable table**: Inline editing of name, party, email, phone, attending status, +1 count
 - **Add guest**: `+` button inserts an empty row at the top (saved on save)
 - **Save**: Floppy disk icon. Validates all dirty/new rows (name, email format, phone digits) before persisting. Shows count of unsaved changes.
 - **Delete**: Trash icon. Batch-deletes selected rows with confirmation.
 - **Email**: Opens a `mailto:` link with the admin as `to:` and all selected guests' emails as `bcc:`.
-- **Export**: Popover with CSV download option.
+- **Export**: Popover with CSV download including Party assignment.
 - **Select all**: Checkbox in header to toggle all rows. Selection count shown in action bar.
 - **Sorting**: Click any column header to sort ascending/descending.
 - **Pagination**: 100 rows per page with ellipsis for large datasets.
