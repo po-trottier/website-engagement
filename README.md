@@ -123,7 +123,7 @@ Accessible at `/admin`. `ADMIN_PASSWORD` grants read-only access; `ADMIN_WRITE_P
 | **Functions** | `rsvp.mjs` and `admin.mjs` serverless endpoints |
 | **Blobs** | Key-value storage for RSVP data (store: `rsvps`) |
 | **404 handling** | Custom `404.html` served automatically |
-| **Environment variables** | `ADMIN_PASSWORD`, `NOTIFICATION_EMAIL`, `SMTP_USER`, `SMTP_PASS` set in dashboard |
+| **Environment variables** | Secrets: `ADMIN_PASSWORD`, `ADMIN_WRITE_PASSWORD`; also set `NOTIFICATION_EMAIL`, `SMTP_USER`, `SMTP_PASS` in dashboard |
 
 ### Setting up email notifications
 
