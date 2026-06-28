@@ -52,6 +52,13 @@ export default async (req) => {
       );
     }
 
+    if (!["list", "update", "create", "delete"].includes(action)) {
+      return new Response(JSON.stringify({ error: "Unknown action" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const store = getStore("rsvps");
 
     // ---------- List ----------
@@ -196,10 +203,6 @@ export default async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: "Unknown action" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
   } catch {
     return new Response(
       JSON.stringify({ error: "Server error" }),

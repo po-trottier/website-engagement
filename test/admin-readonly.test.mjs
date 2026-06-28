@@ -40,3 +40,12 @@ test("identical read and write passwords stay readonly", async () => {
 
   await assertReadonly(await request("same-pass", "create"));
 });
+
+test("ADMIN_WRITE_PASSWORD reaches action routing", async () => {
+  env.set("ADMIN_PASSWORD", "read-pass");
+  env.set("ADMIN_WRITE_PASSWORD", "write-pass");
+
+  const response = await request("write-pass", "probe");
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: "Unknown action" });
+});
