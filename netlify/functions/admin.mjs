@@ -10,9 +10,8 @@ function matches(input, secret) {
   return timingSafeEqual(Buffer.from(input), Buffer.from(secret));
 }
 
-// Returns "write" | "readonly" | null. Write is checked first so that if an
-// operator misconfigures both env vars to the same value, the caller gets the
-// more-privileged interpretation (fail-safe for the operator, not the attacker).
+// Returns "readonly" | "write" | null. Readonly is checked first so identical
+// read and write secrets cannot grant write access.
 function authenticate(body) {
   const input = String(body.password || "");
   // Always evaluate both compares before branching so the number of
@@ -20,8 +19,8 @@ function authenticate(body) {
   // (if any) matched.
   const isWrite = matches(input, Netlify.env.get("ADMIN_WRITE_PASSWORD"));
   const isRead = matches(input, Netlify.env.get("ADMIN_PASSWORD"));
-  if (isWrite) return "write";
   if (isRead) return "readonly";
+  if (isWrite) return "write";
   return null;
 }
 
@@ -44,7 +43,6 @@ export default async (req) => {
       });
     }
 
-    const store = getStore("rsvps");
     const action = body.action || "list";
 
     if (action !== "list" && mode !== "write") {
@@ -53,6 +51,8 @@ export default async (req) => {
         { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
+
+    const store = getStore("rsvps");
 
     // ---------- List ----------
     if (action === "list") {
