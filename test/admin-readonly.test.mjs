@@ -6,12 +6,12 @@ import handler from "../netlify/functions/admin.mjs";
 const env = new Map();
 globalThis.Netlify = { env: { get: (key) => env.get(key) } };
 
-async function request(password, action) {
+async function request(password, action, extra) {
   return handler(
     new Request("http://localhost/.netlify/functions/admin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password, action }),
+      body: JSON.stringify(Object.assign({ password, action }, extra)),
     })
   );
 }
@@ -55,4 +55,28 @@ test("ADMIN_PASSWORD stays readonly for unknown actions", async () => {
   env.set("ADMIN_WRITE_PASSWORD", "write-pass");
 
   await assertReadonly(await request("read-pass", "probe"));
+});
+
+test("ADMIN_PASSWORD cannot update Party", async () => {
+  env.set("ADMIN_PASSWORD", "read-pass");
+  env.set("ADMIN_WRITE_PASSWORD", "write-pass");
+
+  await assertReadonly(
+    await request("read-pass", "update", {
+      id: "00000000-0000-0000-0000-000000000000",
+      fields: { party: "Athena" },
+    })
+  );
+});
+
+test("invalid Party is rejected before storage", async () => {
+  env.set("ADMIN_PASSWORD", "read-pass");
+  env.set("ADMIN_WRITE_PASSWORD", "write-pass");
+
+  const response = await request("write-pass", "update", {
+    id: "00000000-0000-0000-0000-000000000000",
+    fields: { party: "Other" },
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: "Invalid party" });
 });

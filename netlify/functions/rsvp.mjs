@@ -46,6 +46,7 @@ export default async (req) => {
       name,
       email,
       phone,
+      party: "",
       attending,
       plusOnes,
       createdAt: new Date().toISOString(),

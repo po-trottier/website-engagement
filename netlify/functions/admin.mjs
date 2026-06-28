@@ -3,6 +3,7 @@ import { Buffer } from "node:buffer";
 import { timingSafeEqual } from "node:crypto";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const PARTIES = new Set(["", "Athena", "P-O"]);
 
 function matches(input, secret) {
   if (!secret || secret.length < 8 || secret === "changeme") return false;
@@ -52,6 +53,17 @@ export default async (req) => {
       );
     }
 
+    if (
+      (action === "create" || action === "update") &&
+      Object.hasOwn(body.fields || {}, "party") &&
+      !PARTIES.has(body.fields.party)
+    ) {
+      return new Response(JSON.stringify({ error: "Invalid party" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     if (!["list", "update", "create", "delete"].includes(action)) {
       return new Response(JSON.stringify({ error: "Unknown action" }), {
         status: 400,
@@ -82,7 +94,10 @@ export default async (req) => {
       );
       const rsvps = results
         .filter((r) => r.status === "fulfilled" && r.value)
-        .map((r) => r.value);
+        .map((r) => ({
+          ...r.value,
+          party: PARTIES.has(r.value.party) ? r.value.party : "",
+        }));
 
       rsvps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -117,6 +132,7 @@ export default async (req) => {
       if (fields.phone !== undefined) rsvp.phone = String(fields.phone).trim().slice(0, 200);
       if (fields.attending !== undefined) rsvp.attending = fields.attending === true || fields.attending === "true";
       if (fields.plusOnes !== undefined) rsvp.plusOnes = Math.max(0, Math.min(10, parseInt(fields.plusOnes) || 0));
+      if (fields.party !== undefined) rsvp.party = fields.party;
 
       await store.setJSON(id, rsvp);
 
@@ -142,6 +158,7 @@ export default async (req) => {
         name: String(fields.name).trim().slice(0, 200),
         email: String(fields.email || "").trim().slice(0, 200),
         phone: String(fields.phone || "").trim().slice(0, 200),
+        party: fields.party ?? "",
         attending: fields.attending === true || fields.attending === "true",
         plusOnes: Math.max(0, Math.min(10, parseInt(fields.plusOnes) || 0)),
         createdAt: new Date().toISOString(),
