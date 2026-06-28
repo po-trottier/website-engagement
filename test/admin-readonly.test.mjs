@@ -49,3 +49,10 @@ test("ADMIN_WRITE_PASSWORD reaches action routing", async () => {
   assert.equal(response.status, 400);
   assert.deepEqual(await response.json(), { error: "Unknown action" });
 });
+
+test("ADMIN_PASSWORD stays readonly for unknown actions", async () => {
+  env.set("ADMIN_PASSWORD", "read-pass");
+  env.set("ADMIN_WRITE_PASSWORD", "write-pass");
+
+  await assertReadonly(await request("read-pass", "probe"));
+});
