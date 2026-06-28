@@ -57,6 +57,7 @@ Create a `.env` file in the root:
 
 ```
 ADMIN_PASSWORD=your-secret-password
+ADMIN_WRITE_PASSWORD=your-distinct-write-password
 NOTIFICATION_EMAIL=your@email.com
 SMTP_USER=your@gmail.com
 SMTP_PASS=your-gmail-app-password
@@ -64,10 +65,13 @@ SMTP_PASS=your-gmail-app-password
 
 | Variable | Purpose |
 |----------|---------|
-| `ADMIN_PASSWORD` | Password for the `/admin` dashboard (min 8 chars, not "changeme") |
+| `ADMIN_PASSWORD` | Read-only credential for the `/admin` dashboard |
+| `ADMIN_WRITE_PASSWORD` | Full create/update/delete credential for the `/admin` dashboard |
 | `NOTIFICATION_EMAIL` | Recipient email for RSVP notifications and admin mailto: link |
 | `SMTP_USER` | Gmail address used to send notification emails |
 | `SMTP_PASS` | Gmail App Password ([create one here](https://myaccount.google.com/apppasswords)) |
+
+Both admin passwords must be at least 8 characters, cannot be `"changeme"`, and must be distinct.
 
 ### Local Development
 
@@ -89,7 +93,7 @@ For email notifications on RSVP submission, configure in Netlify dashboard:
 
 ## Admin Dashboard
 
-Accessible at `/admin`. Password-protected (uses `ADMIN_PASSWORD` env var).
+Accessible at `/admin`. `ADMIN_PASSWORD` grants read-only access; `ADMIN_WRITE_PASSWORD` grants full create/update/delete access.
 
 ### Features
 
